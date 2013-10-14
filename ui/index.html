@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<link rel="SHORTCUT ICON" href="fav.ico"/>
+<title>Wacky Morning DJ</title>
+<!--[if IE]>
+<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.1.1/build/cssreset/reset-min.css">
+<style>
+	article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, ul, li {display: block;}
+	
+	body {
+		font-family:helvetica,arial,sans-serif;
+	}
+
+	li {
+		position:relative;
+		width:500px;
+		height:100px;
+		border:solid 1px #000;
+		margin:0 auto;
+		margin-top:25px;
+	}
+
+	li h3{
+		font-weight:solid;
+		position:absolute;
+		top:25px;left:92px;
+	}
+
+	li div.action{
+		position:absolute;
+		top:25px;
+		left:25px;
+		width:48px;
+		height:35px;
+		border:solid 1px #000;
+		text-align:center;
+		overflow:hidden;
+		padding:15px 0 0 2px;
+		cursor: pointer;
+		cursor: hand;
+	}
+
+	li div.action.start{
+		line-height:35px;
+		font-size:35px;
+	}
+
+	li div.action.stop{
+		padding-top:3px;
+		height:47px;
+		line-height:35px;
+		font-size:35px;
+		display:none;
+	}
+
+	li div.progress{
+		width:381px;
+		height:20px;
+		border:solid 1px #000;
+		position:absolute;
+		top:55px;left:92px;
+	}
+
+	li div.progress div.bar{
+		width:0;
+		height:20px;
+		background-color:#eee;
+	}
+	
+	#footer {
+		position:relative;
+		width:500px;
+		margin:0 auto;
+		margin-top:25px;
+	}
+	
+	#footer p.thanks {
+		position:absolute;
+		top:0px;right:0px;
+		font-size:10px;
+		color:#999;
+	}		
+
+</style>
+</head>
+<body>
+	<div>
+		<ul>
+			<li id="rimshot" data-audio-file="http://cdn.standardpixel.com/tps_sounds/rimshot.mp3" class="sound-item">
+	<div class="action play">►</div>
+	<div class="action stop">●</div>
+	<h3>0 - Rim Shot</h3>
+	<div class="progress"><div class="bar"></div></div>
+</li>			<li id="sad_trombone" data-audio-file="http://cdn.standardpixel.com/tps_sounds/sad_trombone.mp3" class="sound-item">
+	<div class="action play">►</div>
+	<div class="action stop">●</div>
+	<h3>1 - Sad Trombone</h3>
+	<div class="progress"><div class="bar"></div></div>
+</li>			<li id="youcant" data-audio-file="http://cdn.standardpixel.com/tps_sounds/youcant.mp3" class="sound-item">
+	<div class="action play">►</div>
+	<div class="action stop">●</div>
+	<h3>2 - You can't do that...</h3>
+	<div class="progress"><div class="bar"></div></div>
+</li>			<li id="hardway" data-audio-file="http://cdn.standardpixel.com/tps_sounds/hardway.mp3" class="sound-item">
+	<div class="action play">►</div>
+	<div class="action stop">●</div>
+	<h3>3 - $14, The hard way</h3>
+	<div class="progress"><div class="bar"></div></div>
+</li>			<li id="Crickets" data-audio-file="http://cdn.standardpixel.com/tps_sounds/crickets.mp3" class="sound-item">
+	<div class="action play">►</div>
+	<div class="action stop">●</div>
+	<h3>4 - Crickets</h3>
+	<div class="progress"><div class="bar"></div></div>
+</li>		</ul>
+		<div id="footer">
+			<p class="thanks">Hey, Thanks <a href="http://www.schillmania.com/projects/soundmanager2/">SoundManager</a>!</p>
+		</div>
+	</div>
+	<script type="text/javascript" src="http://yui.yahooapis.com/combo?3.1.1/build/yui/yui-min.js"></script>
+	<script type="text/javascript" src="/soundmanager/script/soundmanager2-jsmin.js"></script>
+	<script type="text/javascript">
+		/*
+		*  Set up sound manager
+		*/
+		soundManager.url       = '/soundmanager/swf/soundmanager2.swf';
+		soundManager.debugMode = false;
+		soundManager.onload = function() {
+			YUI().use('node', function(Y) {
+				var sound_item_nodes = Y.all('li.sound-item'),
+				    sound_objects    = [],
+				    hash_number      = window.location.hash.split('#')[1];
+				
+				function reset_audio_item(item_node) {
+					item_node.one('.progress .bar').setStyle('width',0);
+					
+					item_node.one('div.stop').setStyle('display','none');
+					item_node.one('div.play').setStyle('display','block');
+				}
+				
+				function on_stop() {
+					var sound_node = Y.one('#' + this.sID);
+					
+					setTimeout(function(){reset_audio_item(sound_node)},500);
+				}
+				
+				sound_item_nodes.each(function(item) {
+
+					sound_objects.push(soundManager.createSound({
+					    	id           : item.getAttribute('id'),
+					    	url          : item.getAttribute('data-audio-file'),
+					    	volume       : 100,
+						onplay       : function on_play() {
+							var sound_node = Y.one('#' + this.sID);
+							sound_node.one('div.stop').setStyle('display','block');
+							sound_node.one('div.play').setStyle('display','none');
+						},
+						onstop       : on_stop,
+						onfinish     : on_stop,
+						whileplaying : function() {
+							var progress_bar = Y.one('#' + this.sID + ' div.progress div.bar');
+							progress_bar.setStyle('width',(this.position/this.duration*100) + '%');
+						}
+					}));
+					
+					var sound = sound_objects[sound_objects.length-1];
+					
+					item.one('.action').on('click',function() {
+
+						sound.play();
+					});
+					
+					Y.one('body').on('keypress',function(e) {
+						if(e.charCode > 47 && e.charCode < 57) {
+							var audio_item = sound_objects[e.charCode-48];
+							if(audio_item){
+								audio_item.play();
+							};
+						}
+					});
+				});
+				
+				if(hash_number) {
+					var hash_sound = sound_objects[hash_number];
+					if(hash_sound) {
+						hash_sound.play();
+					}
+				}
+			});
+		};
+	</script>
+</body>
+</html>
